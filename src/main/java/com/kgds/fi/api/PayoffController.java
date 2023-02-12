@@ -31,7 +31,7 @@ public class PayoffController {
     @GetMapping("/account/amortizationSchedule")
     public ResponseEntity<String> getAmortizationSchedule(@RequestHeader("accountNumber") String accountNumber){
         LoanAccount loanAccount = accountService.getLoanAccount(accountNumber);
-        List amortizationSchedule = loanPayoffService.amortizationSchedules(loanAccount);
+        List amortizationSchedule = loanPayoffService.amortizationSchedule(loanAccount);
         return ResponseEntity.ok(new Gson().toJson(amortizationSchedule));
     }
 
