@@ -1,7 +1,7 @@
 package com.kgds.fi.model;
 
 import lombok.AllArgsConstructor;
-import lombok.Builder;
+
 
 @AllArgsConstructor
 public class AmortizationSchedule {
