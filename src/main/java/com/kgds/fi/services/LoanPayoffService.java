@@ -29,7 +29,7 @@ public class LoanPayoffService {
                 .build();
     }
 
-    public List<AmortizationSchedule> loanAmortizationSchedule(LoanAccount loanAccount) {
+    public List<AmortizationSchedule> amortizationSchedules(LoanAccount loanAccount) {
         List amortizationSchedule = new ArrayList();
 
         double loanAmount = loanAccount.getLoanAmount();
