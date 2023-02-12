@@ -1,5 +1,6 @@
 package com.kgds.fi.configuration;
 
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 import org.springframework.http.HttpHeaders;
@@ -12,11 +13,14 @@ import java.util.Locale;
 
 @Configuration
 public class AppConfiguration {
+    @Value("${account.service.url}")
+    private String accountServiceUrl;
+
     //create advance webclient bean
     @Bean
     public WebClient webClient() {
         return WebClient.builder()
-                .baseUrl("http://localhost:3001")
+                .baseUrl(accountServiceUrl)
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }

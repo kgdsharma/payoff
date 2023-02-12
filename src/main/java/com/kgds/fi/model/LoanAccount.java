@@ -4,7 +4,7 @@ import lombok.Data;
 
 @Data
 public class LoanAccount {
-    //acount number
+    //account number
     private String accountNumber;
     // 1. get loan amount
     private double loanAmount;

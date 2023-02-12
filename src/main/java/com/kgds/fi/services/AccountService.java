@@ -9,6 +9,7 @@ import org.springframework.web.reactive.function.client.WebClient;
 @AllArgsConstructor
 public class AccountService {
     private WebClient webClient;
+
     //get loan account details from service called through webclient
     public LoanAccount getLoanAccount(String accountNumber) {
         return webClient.get()
