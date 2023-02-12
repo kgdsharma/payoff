@@ -13,7 +13,7 @@ import java.util.List;
 
 @Service
 @AllArgsConstructor
-public class LoanPayoffService {
+public class PayoffService {
     private DateFormat extendedDateFormat;
 
     public PayOff calculatePayoffAmount(LoanAccount loanAccount, Date date) {
