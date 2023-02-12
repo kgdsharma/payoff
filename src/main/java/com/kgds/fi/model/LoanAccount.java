@@ -12,7 +12,7 @@ public class LoanAccount {
     // 2. get interest rate
     private double interestRate;
     // 3. get loan term
-    private int loanTerm;
+    private int loanTermInYears;
     // 4. get principal remaining
     private double principalRemaining;
     //loan start date

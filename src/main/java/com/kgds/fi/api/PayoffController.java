@@ -10,6 +10,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
 import java.text.DateFormat;
+import java.util.List;
 
 
 @RestController
@@ -25,6 +26,13 @@ public class PayoffController {
         LoanAccount loanAccount = accountService.getLoanAccount(accountNumber);
         PayOff payOff = loanPayoffService.calculatePayoffAmount(loanAccount, dateFormat.parse(date));
         return ResponseEntity.ok(new Gson().toJson(payOff));
+    }
+
+    @GetMapping("/account/amortizationSchedule")
+    public ResponseEntity<String> getAmortizationSchedule(@RequestHeader("accountNumber") String accountNumber){
+        LoanAccount loanAccount = accountService.getLoanAccount(accountNumber);
+        List amortizationSchedule = loanPayoffService.loanAmortizationSchedule(loanAccount);
+        return ResponseEntity.ok(new Gson().toJson(amortizationSchedule));
     }
 
 }
