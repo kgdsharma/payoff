@@ -20,8 +20,8 @@ public class PayoffController {
     private PayoffService payoffService;
     private DateFormat dateFormat;
 
-    @GetMapping("/account/payoffAmount")
-    public ResponseEntity<String> getPayoffAmount(@RequestHeader("accountNumber") String accountNumber,
+    @GetMapping("/account/payoffQuote")
+    public ResponseEntity<String> getPayoffQuote(@RequestHeader("accountNumber") String accountNumber,
                                                   @RequestParam("date") String date) throws Exception {
         LoanAccount loanAccount = accountService.getLoanAccount(accountNumber);
         PayOff payOff = payoffService.calculatePayoffQuote(loanAccount, dateFormat.parse(date));
