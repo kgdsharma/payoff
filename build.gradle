@@ -21,7 +21,7 @@ repositories {
 }
 
 dependencies {
-	//implementation 'org.springframework.boot:spring-boot-starter-data-jpa'
+
 	implementation 'org.springframework.boot:spring-boot-starter-data-rest'
 	implementation 'org.springframework.boot:spring-boot-starter-web'
 	implementation 'org.projectlombok:lombok:1.18.22'
@@ -31,11 +31,14 @@ dependencies {
 	annotationProcessor 'org.projectlombok:lombok'
 	//webclient for rest dependency
 	implementation 'org.springframework.boot:spring-boot-starter-webflux'
-// add gson
+	// add gson
 	implementation 'com.google.code.gson:gson:2.8.8'
+	//add mysql jdbc driver
 
 
-	//runtimeOnly('com.h2database:h2');
+
+
+
 }
 
 tasks.named('test') {
@@ -62,4 +65,7 @@ task run_app(type:Exec){
 	dependsOn bootJar
 	commandLine 'java', '-javaagent:newrelic/newrelic.jar', '-jar', 'build/libs/kgds.jar'
 }
+//task to run npm start from gradle
+
+
 

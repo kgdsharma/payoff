@@ -24,7 +24,7 @@ public class PayoffController {
     public ResponseEntity<String> getPayoffAmount(@RequestHeader("accountNumber") String accountNumber,
                                                   @RequestParam("date") String date) throws Exception {
         LoanAccount loanAccount = accountService.getLoanAccount(accountNumber);
-        PayOff payOff = payoffService.calculatePayoffAmount(loanAccount, dateFormat.parse(date));
+        PayOff payOff = payoffService.calculatePayoffQuote(loanAccount, dateFormat.parse(date));
         return ResponseEntity.ok(new Gson().toJson(payOff));
     }
 

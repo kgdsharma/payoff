@@ -20,5 +20,7 @@ public class LoanAccount {
     private String loanEndDate;
     //loan type
     private String accountType;
+    //cycle date
+    private int dayCycleStarts;
 
 }

@@ -16,20 +16,25 @@ import java.util.List;
 public class PayoffService {
     private DateFormat extendedDateFormat;
 
-    public PayOff calculatePayoffAmount(LoanAccount loanAccount, Date date) {
-        //calculate payoff amount using daily interest rate and remaining principal amount and the number of days between the given date and the current date
-        double dailyInterestRate = loanAccount.getInterestRate() / 365;
+    public PayOff calculatePayoffQuote(LoanAccount loanAccount, Date payOffQuoteDate) {
+        //calculate payoff quote for a given date based on principle remaining and cycle start day
         double remainingPrincipal = loanAccount.getPrincipalRemaining();
-        long days = (date.getTime() - new Date().getTime()) / (1000 * 60 * 60 * 24);
-        double payoffAmount = remainingPrincipal + (1 + dailyInterestRate * days);
+        //daily interest
+        double dailyInterestRate = loanAccount.getInterestRate() / 36500.0;
+        //calculate payoff amount
+        double payOffAmount = remainingPrincipal +
+                (remainingPrincipal * dailyInterestRate * daysBetweenCycleStartDateAndPayoffQuoteDate(
+                        loanAccount.getDayCycleStarts(), payOffQuoteDate.getDate()));
+
         return PayOff.builder()
+                .payoffAmount(payOffAmount)
                 .accountNumber(loanAccount.getAccountNumber())
-                .payoffAmount(payoffAmount)
-                .payoffDate(extendedDateFormat.format(date))
+                .payoffDate(extendedDateFormat.format(payOffQuoteDate))
                 .build();
     }
 
     public List<AmortizationSchedule> amortizationSchedule(LoanAccount loanAccount) {
+        //calculate amortization schedule for a given loan account
         List amortizationSchedule = new ArrayList();
 
         double loanAmount = loanAccount.getLoanAmount();
@@ -52,6 +57,16 @@ public class PayoffService {
         return amortizationSchedule;
     }
 
+    private int daysBetweenCycleStartDateAndPayoffQuoteDate(int cycleStartDD, int payOffQuoteDD) {
+        if (cycleStartDD > payOffQuoteDD) {
+            return (30 - cycleStartDD) + payOffQuoteDD;
+        } else {
+            return payOffQuoteDD - cycleStartDD;
+        }
+
+    }
 }
+
+
 
 

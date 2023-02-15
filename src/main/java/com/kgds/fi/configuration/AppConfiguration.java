@@ -33,4 +33,23 @@ public class AppConfiguration {
     public DateFormat extendedDateFormat() {
         return new SimpleDateFormat("dd-MMM-yyyy", Locale.US);
     }
+    //create a datasource for my sql database using DataSourceBuilder
+    // @Bean
+    // @ConfigurationProperties(prefix = "spring.datasource")
+    // public DataSource dataSource() {
+    //     return DataSourceBuilder.create().build();
+    // }
+
+    //create an advance Webclient
+
+
+
+
+
+
+
+
+
+
+
 }

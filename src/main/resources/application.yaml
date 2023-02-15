@@ -1,11 +1,19 @@
+# server port 3010
 server:
   port: 3010
-
+# logging level
 logging:
   level:
     root: INFO
     org.springframework.web: DEBUG
+    org.hibernate: ERROR
 
 account:
   service:
     url: http://localhost:3001
+
+# my-sql database
+
+
+
+
