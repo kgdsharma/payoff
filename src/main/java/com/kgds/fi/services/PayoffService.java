@@ -26,9 +26,9 @@ public class PayoffService {
                 (remainingPrincipal * dailyInterestRate * daysBetweenCycleStartDateAndPayoffQuoteDate(
                         loanAccount.getDayCycleStarts(), payOffQuoteDate.getDate()));
 
-        return PayOff.builder()
-                .payoffAmount(payOffAmount)
+       return PayOff.builder()
                 .accountNumber(loanAccount.getAccountNumber())
+                .payoffAmount(payOffAmount)
                 .payoffDate(extendedDateFormat.format(payOffQuoteDate))
                 .build();
     }

@@ -34,6 +34,15 @@ dependencies {
 	// add gson
 	implementation 'com.google.code.gson:gson:2.8.8'
 	//add mysql jdbc driver
+	implementation 'mysql:mysql-connector-java:8.0.26'
+	// add spring boot jpa
+
+	
+
+
+
+
+
 
 
 
@@ -44,15 +53,15 @@ dependencies {
 tasks.named('test') {
 	useJUnitPlatform()
 }
-task downloadNewrelic(type: Download) {
-	mkdir 'newrelic'
-	src 'https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip'
-	dest file('newrelic')
-}
-task unzipNewrelic(type: Copy) {
-	from zipTree(file('newrelic/newrelic-java.zip'))
-	into rootDir
-}
+//task downloadNewrelic(type: Download) {
+//	mkdir 'newrelic'
+//	src 'https://download.newrelic.com/newrelic/java-agent/newrelic-agent/current/newrelic-java.zip'
+//	dest file('newrelic')
+//}
+//task unzipNewrelic(type: Copy) {
+//	from zipTree(file('newrelic/newrelic-java.zip'))
+//	into rootDir
+//}
 
 //task to build executable jar
 //java -javaagent:newrelic/newrelic.jar -jar build/libs/kgds.jar
@@ -65,7 +74,15 @@ task run_app(type:Exec){
 	dependsOn bootJar
 	commandLine 'java', '-javaagent:newrelic/newrelic.jar', '-jar', 'build/libs/kgds.jar'
 }
-//task to run npm start from gradle
+//create a gradle task to run npm start from via command line
+task run_npm(type:Exec){
+	commandLine 'npm', 'start'
+}
+//
+
+
+
+
 
 
 
