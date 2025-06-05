@@ -9,7 +9,9 @@ import lombok.AllArgsConstructor;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.*;
 
-import java.text.DateFormat;
+import java.time.LocalDate;
+import java.time.ZoneId;
+import java.util.Date;
 import java.util.List;
 
 
@@ -18,13 +20,13 @@ import java.util.List;
 public class PayoffController {
     private AccountService accountService;
     private PayoffService payoffService;
-    private DateFormat dateFormat;
 
     @GetMapping("/account/payoffQuote")
     public ResponseEntity<String> getPayoffQuote(@RequestHeader("accountNumber") String accountNumber,
-                                                  @RequestParam("date") String date) throws Exception {
+                                                  @RequestParam("date") LocalDate date) throws Exception {
         LoanAccount loanAccount = accountService.getLoanAccount(accountNumber);
-        PayOff payOff = payoffService.calculatePayoffQuote(loanAccount, dateFormat.parse(date));
+        Date payoffDate = Date.from(date.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        PayOff payOff = payoffService.calculatePayoffQuote(loanAccount, payoffDate);
         return ResponseEntity.ok(new Gson().toJson(payOff));
     }
 
