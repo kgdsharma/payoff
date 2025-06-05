@@ -7,8 +7,7 @@ import org.springframework.http.HttpHeaders;
 import org.springframework.http.MediaType;
 import org.springframework.web.reactive.function.client.WebClient;
 
-import java.text.DateFormat;
-import java.text.SimpleDateFormat;
+import java.time.format.DateTimeFormatter;
 import java.util.Locale;
 
 @Configuration
@@ -24,14 +23,15 @@ public class AppConfiguration {
                 .defaultHeader(HttpHeaders.CONTENT_TYPE, MediaType.APPLICATION_JSON_VALUE)
                 .build();
     }
+
     @Bean
-    public DateFormat dateFormat() {
-        return new SimpleDateFormat("yyyy-MM-dd", Locale.US);
+    public DateTimeFormatter isoLocalDateFormatter() {
+        return DateTimeFormatter.ISO_LOCAL_DATE;
     }
 
     @Bean
-    public DateFormat extendedDateFormat() {
-        return new SimpleDateFormat("dd-MMM-yyyy", Locale.US);
+    public DateTimeFormatter extendedDateFormatter() {
+        return DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.US);
     }
     //create a datasource for my sql database using DataSourceBuilder
     // @Bean
