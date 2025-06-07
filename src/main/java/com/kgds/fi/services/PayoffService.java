@@ -63,7 +63,8 @@ public class PayoffService {
             double principal = monthlyPayment - interest;
             remainingBalance -= principal;
             amortizationSchedule.add(new AmortizationSchedule(i + 1,
-                    monthlyPayment, principal, interest, remainingBalance));
+                    monthlyPayment, principal, interest, remainingBalance,
+                    monthlyPayment, interest, principal, remainingBalance));
         }
 
         return amortizationSchedule;
