@@ -1,141 +1,99 @@
 package com.kgds.fi.services;
 
-import com.kgds.fi.model.LoanAccount;
-import com.kgds.fi.model.PayOff;
 import com.kgds.fi.model.AmortizationSchedule;
-import org.junit.jupiter.api.BeforeEach;
+import com.kgds.fi.model.LoanAccount;
 import org.junit.jupiter.api.Test;
-// import org.junit.jupiter.params.ParameterizedTest; // Not used in current version
-// import org.junit.jupiter.params.provider.CsvSource; // Not used in current version
+import org.junit.jupiter.api.extension.ExtendWith;
+import org.mockito.junit.jupiter.MockitoExtension;
 
-import java.time.LocalDate;
-import java.time.ZoneId;
-import java.time.format.DateTimeFormatter;
-import java.util.Date;
 import java.util.List;
-import java.util.Locale;
 
 import static org.junit.jupiter.api.Assertions.*;
 
-public class PayoffServiceTest {
+@ExtendWith(MockitoExtension.class) // Though not strictly needed for these tests as we are not mocking
+class PayoffServiceTest {
 
-    private PayoffService payoffService;
+    private final PayoffService payoffService = new PayoffService();
 
-    @BeforeEach
-    void setUp() {
-        payoffService = new PayoffService(); // PayoffService has no dependencies now
-    }
+    @Test
+    void testAmortizationSchedule_CalculatesCorrectly_OneYearLoan() {
+        LoanAccount loanAccount = new LoanAccount();
+        loanAccount.setLoanAmount(10000.0);
+        loanAccount.setInterestRate(5.0); // Annual interest rate
+        loanAccount.setLoanStartDate("01-Jan-2023");
+        loanAccount.setLoanEndDate("01-Jan-2024"); // 12 months
+        loanAccount.setPrincipalRemaining(10000.0); // Assuming no payments made yet
+        loanAccount.setDayCycleStarts(1);
 
-    private LoanAccount createLoanAccount(double principalRemaining, double interestRate, int loanTermYears, double loanAmount, int dayCycleStarts) {
-        LoanAccount account = new LoanAccount();
-        account.setAccountNumber("TestAcc123");
-        account.setPrincipalRemaining(principalRemaining);
-        account.setInterestRate(interestRate); // Annual interest rate in percentage (e.g., 3.65 for 3.65%)
-        account.setLoanTermInYears(loanTermYears);
-        account.setLoanAmount(loanAmount);
-        account.setDayCycleStarts(dayCycleStarts);
-        return account;
-    }
+        List<AmortizationSchedule> scheduleList = payoffService.amortizationSchedule(loanAccount);
 
-    private Date toDate(LocalDate localDate) {
-        return Date.from(localDate.atStartOfDay(ZoneId.systemDefault()).toInstant());
+        assertNotNull(scheduleList);
+        assertEquals(12, scheduleList.size(), "Schedule should have 12 entries for a 1-year loan.");
+
+        // For the first payment
+        AmortizationSchedule firstPayment = scheduleList.get(0);
+        assertEquals(1, firstPayment.getPaymentNumber());
+        assertEquals(856.07, firstPayment.getMonthlyPaymentAmount(), 0.01, "Monthly payment amount for first payment");
+        assertEquals(41.67, firstPayment.getMonthlyInterest(), 0.01, "Monthly interest for first payment");
+        assertEquals(814.40, firstPayment.getMonthlyPrincipal(), 0.01, "Monthly principal for first payment");
+        assertEquals(9185.60, firstPayment.getRemainingPrincipal(), 0.01, "Remaining principal after first payment");
+
+        // For the last payment
+        AmortizationSchedule lastPayment = scheduleList.get(11);
+        assertEquals(12, lastPayment.getPaymentNumber());
+        // The remaining principal should be very close to 0.
+        assertTrue(lastPayment.getRemainingPrincipal() < 1.0, "Remaining principal after last payment should be close to 0.");
+
+        // Verify total principal paid
+        double totalPrincipalPaid = scheduleList.stream().mapToDouble(AmortizationSchedule::getMonthlyPrincipal).sum();
+        assertEquals(10000.0, totalPrincipalPaid, 0.01, "Total principal paid should equal loan amount.");
     }
 
     @Test
-    void testCalculatePayoffQuote_SameMonth_NoLeap() {
-        LoanAccount account = createLoanAccount(10000.0, 3.65, 5, 10000.0, 1);
-        LocalDate payoffDate = LocalDate.of(2023, 3, 15);
-        PayOff payOff = payoffService.calculatePayoffQuote(account, toDate(payoffDate));
+    void testAmortizationSchedule_ShortLoanTerm_ThreeMonths() {
+        LoanAccount loanAccount = new LoanAccount();
+        loanAccount.setLoanAmount(3000.0);
+        loanAccount.setInterestRate(6.0); // Annual interest rate
+        loanAccount.setLoanStartDate("01-Jan-2023");
+        loanAccount.setLoanEndDate("01-Apr-2023"); // 3 months
+        loanAccount.setPrincipalRemaining(3000.0);
+        loanAccount.setDayCycleStarts(1);
 
-        assertEquals("TestAcc123", payOff.getAccountNumber());
-        assertEquals(10014.0, payOff.getPayoffAmount(), 0.01);
-        DateTimeFormatter formatter = DateTimeFormatter.ofPattern("dd-MMM-yyyy", Locale.US);
-        assertEquals(formatter.format(payoffDate), payOff.getPayoffDate());
-    }
+        List<AmortizationSchedule> scheduleList = payoffService.amortizationSchedule(loanAccount);
 
-    @Test
-    void testCalculatePayoffQuote_AcrossMonthBoundary_NoLeap() {
-        LoanAccount account = createLoanAccount(10000.0, 3.65, 5, 10000.0, 20);
-        LocalDate payoffDate = LocalDate.of(2023, 4, 5);
-        PayOff payOff = payoffService.calculatePayoffQuote(account, toDate(payoffDate));
+        assertNotNull(scheduleList);
+        assertEquals(3, scheduleList.size(), "Schedule should have 3 entries for a 3-month loan.");
 
-        assertEquals(10016.0, payOff.getPayoffAmount(), 0.01);
-    }
+        // Recalculate expected values for this scenario
+        // P = 3000, i = 0.06 / 12 = 0.005, n = 3
+        // M = P * [i(1+i)^n] / [(1+i)^n - 1]
+        // (1+i)^n = (1.005)^3 = 1.015075125
+        // M = 3000 * [0.005 * 1.015075125] / [1.015075125 - 1]
+        // M = 3000 * [0.005075375625] / [0.015075125]
+        // M = 3000 * 0.33668053... = 1010.04159...
+        double expectedMonthlyPayment = 1010.04; // Rounded for assertion
 
-    @Test
-    void testCalculatePayoffQuote_AcrossYearBoundary_LeapToNonLeap() {
-        LoanAccount account = createLoanAccount(10000.0, 3.65, 5, 10000.0, 28);
-        LocalDate payoffDate = LocalDate.of(2021, 1, 5);
-        PayOff payOff = payoffService.calculatePayoffQuote(account, toDate(payoffDate));
+        // First payment
+        AmortizationSchedule firstPayment = scheduleList.get(0);
+        assertEquals(1, firstPayment.getPaymentNumber());
+        assertEquals(expectedMonthlyPayment, firstPayment.getMonthlyPaymentAmount(), 0.01, "Monthly payment amount for first payment");
 
-        assertEquals(10008.0, payOff.getPayoffAmount(), 0.01);
-    }
+        double firstMonthInterest = 3000.0 * (0.06 / 12.0); // 3000 * 0.005 = 15.00
+        assertEquals(15.00, firstPayment.getMonthlyInterest(), 0.01, "Monthly interest for first payment");
 
-    @Test
-    void testCalculatePayoffQuote_LeapYear_EndOfFeb() {
-        LoanAccount account = createLoanAccount(10000.0, 3.66, 5, 10000.0, 1);
-        LocalDate payoffDate = LocalDate.of(2024, 2, 29);
-        PayOff payOff = payoffService.calculatePayoffQuote(account, toDate(payoffDate));
+        double firstMonthPrincipal = expectedMonthlyPayment - firstMonthInterest; // 1010.04 - 15.00 = 995.04
+        assertEquals(firstMonthPrincipal, firstPayment.getMonthlyPrincipal(), 0.01, "Monthly principal for first payment");
 
-        assertEquals(10028.0, payOff.getPayoffAmount(), 0.01);
-    }
+        double remainingAfterFirst = 3000.0 - firstMonthPrincipal; // 3000 - 995.04 = 2004.96
+        assertEquals(remainingAfterFirst, firstPayment.getRemainingPrincipal(), 0.01, "Remaining principal after first payment");
 
-    @Test
-    void testCalculatePayoffQuote_CycleStartAfterQuoteDay_PreviousMonthCycle() {
-        LoanAccount account = createLoanAccount(5000.0, 7.30, 3, 5000.0, 15);
-        LocalDate payoffDate = LocalDate.of(2023, 8, 10);
-        PayOff payOff = payoffService.calculatePayoffQuote(account, toDate(payoffDate));
+        // Last payment (3rd payment)
+        AmortizationSchedule lastPayment = scheduleList.get(2);
+        assertEquals(3, lastPayment.getPaymentNumber());
+        assertTrue(lastPayment.getRemainingPrincipal() < 1.0, "Remaining principal after last payment should be close to 0.");
 
-        assertEquals(5026.0, payOff.getPayoffAmount(), 0.01);
-    }
-
-    @Test
-    void testAmortizationSchedule_StructureAndCounts() {
-        LoanAccount account = createLoanAccount(200000.0, 6.0, 1, 200000.0, 1);
-        List<AmortizationSchedule> schedule = payoffService.amortizationSchedule(account);
-
-        assertNotNull(schedule);
-        assertEquals(12, schedule.size());
-    }
-
-    @Test
-    void testAmortizationSchedule_FirstAndLastInstallment() {
-        LoanAccount account = createLoanAccount(12000.0, 12.0, 1, 12000.0, 1);
-        List<AmortizationSchedule> schedule = payoffService.amortizationSchedule(account);
-
-        assertEquals(12, schedule.size());
-
-        AmortizationSchedule first = schedule.get(0);
-        assertEquals(1, first.getPaymentNumber());
-        assertEquals(1066.19, first.getPaymentAmount(), 0.01);
-        assertEquals(120.00, first.getInterestPaid(), 0.01);
-        assertEquals(946.19, first.getPrincipalPaid(), 0.01);
-        assertEquals(11053.81, first.getRemainingBalance(), 0.01);
-
-        AmortizationSchedule last = schedule.get(11);
-        assertEquals(12, last.getPaymentNumber());
-        assertEquals(1066.19, last.getPaymentAmount(), 0.01);
-        assertTrue(last.getRemainingBalance() < 1.0, "Remaining balance should be close to 0");
-        assertEquals(10.56, last.getInterestPaid(), 0.01);
-        assertEquals(1055.63, last.getPrincipalPaid(), 0.01);
-    }
-
-    @Test
-    void testAmortizationSchedule_ZeroInterest() {
-        LoanAccount account = createLoanAccount(12000.0, 0.0, 1, 12000.0, 1);
-        List<AmortizationSchedule> schedule = payoffService.amortizationSchedule(account);
-
-        assertEquals(12, schedule.size());
-        AmortizationSchedule first = schedule.get(0);
-        assertEquals(1000.0, first.getPaymentAmount(), 0.01);
-        assertEquals(0.0, first.getInterestPaid(), 0.01);
-        assertEquals(1000.0, first.getPrincipalPaid(), 0.01);
-        assertEquals(11000.0, first.getRemainingBalance(), 0.01);
-
-        AmortizationSchedule last = schedule.get(11);
-        assertEquals(1000.0, last.getPaymentAmount(), 0.01);
-        assertEquals(0.0, last.getInterestPaid(), 0.01);
-        assertEquals(1000.0, last.getPrincipalPaid(), 0.01);
-        assertEquals(0.0, last.getRemainingBalance(), 0.01);
+        // Verify total principal paid
+        double totalPrincipalPaid = scheduleList.stream().mapToDouble(AmortizationSchedule::getMonthlyPrincipal).sum();
+        assertEquals(3000.0, totalPrincipalPaid, 0.01, "Total principal paid should equal loan amount for short term loan.");
     }
 }

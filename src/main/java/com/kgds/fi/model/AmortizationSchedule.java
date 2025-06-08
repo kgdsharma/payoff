@@ -14,10 +14,6 @@ public class AmortizationSchedule {
     private double monthlyPrincipal;
     private double monthlyInterest;
     private double remainingPrincipal;
-    private double paymentAmount;
-    private double interestPaid;
-    private double principalPaid;
-    private double remainingBalance;
 }
 
 

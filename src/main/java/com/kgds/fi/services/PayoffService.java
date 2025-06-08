@@ -52,7 +52,14 @@ public class PayoffService {
 
         double loanAmount = loanAccount.getLoanAmount();
         double interestRate = loanAccount.getInterestRate();
-        int loanPeriodInMonths = loanAccount.getLoanTermInYears() * 12;
+
+        // Parse loanStartDate and loanEndDate from loanAccount
+        LocalDate loanStartDate = LocalDate.parse(loanAccount.getLoanStartDate(), EXTENDED_DATE_FORMATTER);
+        LocalDate loanEndDate = LocalDate.parse(loanAccount.getLoanEndDate(), EXTENDED_DATE_FORMATTER);
+
+        // Calculate loanPeriodInMonths
+        long loanPeriodInMonths = ChronoUnit.MONTHS.between(loanStartDate, loanEndDate);
+
         double monthlyInterestRate = interestRate / 1200.0;
         double monthlyPayment = loanAmount * monthlyInterestRate /
                 (1 - 1 / Math.pow(1 + monthlyInterestRate, loanPeriodInMonths));
@@ -63,8 +70,7 @@ public class PayoffService {
             double principal = monthlyPayment - interest;
             remainingBalance -= principal;
             amortizationSchedule.add(new AmortizationSchedule(i + 1,
-                    monthlyPayment, principal, interest, remainingBalance,
-                    monthlyPayment, interest, principal, remainingBalance));
+                    monthlyPayment, principal, interest, remainingBalance));
         }
 
         return amortizationSchedule;
